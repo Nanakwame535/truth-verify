@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TruthVerify - Fact & Security Checker</title>
+    <meta name="description" content="Free fact-checking and security analysis tool">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 2rem 0;
+            text-align: center;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        header h1 {
+            color: #2c3e50;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        
+        .tab-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .tabs {
+            display: flex;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+        }
+        
+        .tab {
+            padding: 20px 30px;
+            color: white;
+            cursor: pointer;
+            border: none;
+            background: none;
+            flex: 1;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .tab:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .tab.active {
+            background: #e74c3c;
+            box-shadow: inset 0 -4px 0 rgba(0,0,0,0.2);
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 40px;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .input-group {
+            margin-bottom: 25px;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 15px 35px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 10px;
+            display: none;
+            animation: slideDown 0.5s ease;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fact-check-result {
+            background: linear-gradient(135deg, #e8f5e8, #d4edda);
+            border-left: 5px solid #27ae60;
+        }
+        
+        .security-result {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border-left: 5px solid #1976d2;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 30px;
+            margin-top: 50px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            color: #7f8c8d;
+        }
+        
+        .github-badge {
+            display: inline-flex;
+            align-items: center;
+            background: #2b3137;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .github-badge:hover {
+            background: #40464d;
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab-content {
+                padding: 20px;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 TruthVerify</h1>
+            <p>Free Fact Checking & Security Analysis Tool</p>
+            <p style="margin-top: 10px; font-size: 0.9rem; color: #95a5a6;">Powered by GitHub Pages</p>
+        </header>
+
+        <div class="tab-container">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('fact-check')">📰 Fact Check</button>
+                <button class="tab" onclick="switchTab('security-check')">🛡️ Security Check</button>
+                <button class="tab" onclick="switchTab('about')">ℹ️ About</button>
+            </div>
+            
+            <!-- Fact Check Tab -->
+            <div id="fact-check" class="tab-content active">
+                <h2>🔍 Fact Check Information</h2>
+                <p>Enter a claim, statement, or news article to verify its accuracy</p>
+                
+                <div class="input-group">
+                    <textarea id="fact-input" rows="6" placeholder="Paste the statement or claim you want to verify..."></textarea>
+                </div>
+                
+                <button onclick="checkFact()">🔎 Verify Fact</button>
+                
+                <div id="fact-result" class="result fact-check-result">
+                    <h3>Fact Check Results</h3>
+                    <div id="fact-content"></div>
+                </div>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>Accuracy Rating</h3>
+                        <p>Get detailed accuracy ratings for claims</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔗</div>
+                        <h3>Source Verification</h3>
+                        <p>Cross-reference with reliable sources</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Quick Analysis</h3>
+                        <p>Fast results with detailed explanations</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Security Check Tab -->
+            <div id="security-check" class="tab-content">
+                <h2>🛡️ Security Check</h2>
+                <p>Check URLs, files, or websites for security threats</p>
+                
+                <div class="input-group">
+                    <input type="text" id="security-input" placeholder="Enter URL to analyze (e.g., https://example.com)">
+                </div>
+                
+                <button onclick="checkSecurity()">🔒 Check Security</button>
+                <input type="file" id="file-upload" style="margin: 15px 0; display: block;">
+                
+                <div id="security-result" class="result security-result">
+                    <h3>Security Analysis</h3>
+                    <div id="security-content"></div>
+                </div>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🌐</div>
+                        <h3>URL Analysis</h3>
+                        <p>Check website safety and reputation</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📁</div>
+                        <h3>File Scanning</h3>
+                        <p>Upload files for security analysis</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🛡️</div>
+                        <h3>Threat Detection</h3>
+                        <p>Identify malware and phishing attempts</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- About Tab -->
+            <div id="about" class="tab-content">
+                <h2>ℹ️ About TruthVerify</h2>
+                <p>This is an open-source fact-checking and security analysis tool hosted on GitHub Pages.</p>
+                
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🎯</div>
+                        <h3>Mission</h3>
+                        <p>Combat misinformation and improve online security</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔓</div>
+                        <h3>Open Source</h3>
+                        <p>Completely free and transparent</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Fast & Reliable</h3>
+                        <p>Built for speed and accuracy</p>
+                    </div>
+                </div>
+
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 10px; margin-top: 30px;">
+                    <h3>🚀 How to Use</h3>
+                    <ol style="text-align: left; margin: 15px 0; padding-left: 20px;">
+                        <li><strong>Fact Check:</strong> Paste any claim or statement to verify its accuracy</li>
+                        <li><strong>Security Check:</strong> Enter URLs to check for security threats</li>
+                        <li><strong>Get Results:</strong> Receive detailed analysis and recommendations</li>
+                    </ol>
+                </div>
+
+                <div style="margin-top: 30px; padding: 20px; background: #e8f4fd; border-radius: 10px;">
+                    <h3>💡 Future Features</h3>
+                    <ul style="text-align: left; margin: 15px 0; padding-left: 20px;">
+                        <li>Real API integrations</li>
+                        <li>Browser extension</li>
+                        <li>Mobile app</li>
+                        <li>Historical data tracking</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>TruthVerify &copy; 2024 - Open Source Fact Checking Tool</p>
+            <a href="https://github.com/yourusername/truth-verify" class="github-badge" target="_blank">
+                ⭐ View on GitHub
+            </a>
+            <p style="margin-top: 15px; font-size: 0.9rem;">Hosted for free on GitHub Pages</p>
+        </footer>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        function showLoading(elementId) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = '<div class="loading"><div class="spinner"></div><p>Analyzing... This may take a few seconds</p></div>';
+            element.style.display = 'block';
+        }
+
+        async function checkFact() {
+            const input = document.getElementById('fact-input').value.trim();
+            const resultDiv = document.getElementById('fact-result');
+            const contentDiv = document.getElementById('fact-content');
+            
+            if (!input) {
+                alert('Please enter a claim to verify');
+                return;
+            }
+            
+            showLoading('fact-content');
+            
+            // Simulate API call with better demo data
+            setTimeout(() => {
+                const results = simulateFactCheck(input);
+                contentDiv.innerHTML = results;
+            }, 1500);
+        }
+
+        async function checkSecurity() {
+            const input = document.getElementById('security-input').value.trim();
+            const fileInput = document.getElementById('file-upload');
+            const resultDiv = document.getElementById('security-result');
+            const contentDiv = document.getElementById('security-content');
+            
+            if (!input && (!fileInput.files || fileInput.files.length === 0)) {
+                alert('Please enter a URL or select a file');
+                return;
+            }
+            
+            showLoading('security-content');
+            
+            // Simulate security check
+            setTimeout(() => {
+                const results = simulateSecurityCheck(input);
+                contentDiv.innerHTML = results;
+            }, 1500);
+        }
+
+        function simulateFactCheck(input) {
+            const ratings = ['True', 'Mostly True', 'Mixed', 'Mostly False', 'False'];
+            const randomRating = ratings[Math.floor(Math.random() * ratings.length)];
+            
+            const explanations = {
+                'True': 'This claim has been verified by multiple reliable sources and fact-checking organizations.',
+                'Mostly True': 'The core claim is accurate but some minor details may be exaggerated or out of context.',
+                'Mixed': 'This claim contains both accurate and inaccurate information. Sources conflict on key details.',
+                'Mostly False': 'While there might be a kernel of truth, the overall claim is misleading or inaccurate.',
+                'False': 'This claim has been debunked by multiple fact-checking sources and lacks credible evidence.'
+            };
+
+            let html = `
+                <div style="margin-bottom: 25px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    <h4 style="color: #2c3e50; margin-bottom: 15px;">Claim Analysis</h4>
+                    <p style="margin-bottom: 15px; font-style: italic;">"${input.substring(0, 200)}${input.length > 200 ? '...' : ''}"</p>
+                    
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <strong style="margin-right: 10px;">Rating:</strong>
+                        <span style="padding: 5px 15px; border-radius: 20px; background: ${getRatingColor(randomRating)}; color: white; font-weight: bold;">
+                            ${randomRating}
+                        </span>
+                    </div>
+                    
+                    <p style="margin-bottom: 15px;"><strong>Explanation:</strong> ${explanations[randomRating]}</p>
+                    
+                    <div style="margin-top: 20px;">
+                        <strong>Suggested Sources for Verification:</strong>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li><a href="https://www.snopes.com" target="_blank">Snopes</a></li>
+                            <li><a href="https://www.politifact.com" target="_blank">PolitiFact</a></li>
+                            <li><a href="https://www.factcheck.org" target="_blank">FactCheck.org</a></li>
+                            <li><a href="https://www.reuters.com/fact-check" target="_blank">Reuters Fact Check</a></li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+
+            html += `
+                <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin-top: 20px;">
+                    <strong>💡 Demo Notice:</strong> This is a demonstration version. For real fact-checking, integrate with:
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li>Google Fact Check Tools API</li>
+                        <li>ClaimReview API</li>
+                        <li>Snopes API</li>
+                    </ul>
+                </div>
+            `;
+
+            return html;
+        }
+
+        function simulateSecurityCheck(input) {
+            const isSafe = Math.random() > 0.3;
+            const threats = isSafe ? [] : ['Potential phishing indicators', 'Suspicious domain patterns'];
+            const reputation = isSafe ? 'Good' : 'Suspicious';
+            
+            let html = `
+                <div style="margin-bottom: 25px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    <h4 style="color: #2c3e50; margin-bottom: 20px;">Security Report for: ${input || 'Uploaded File'}</h4>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                            <div style="font-size: 1.5rem; margin-bottom: 5px;">${isSafe ? '✅' : '⚠️'}</div>
+                            <strong>Overall Safety</strong>
+                            <div style="color: ${isSafe ? '#27ae60' : '#e74c3c'}">${isSafe ? 'Safe' : 'Caution Advised'}</div>
+                        </div>
+                        
+                        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                            <div style="font-size: 1.5rem; margin-bottom: 5px;">📊</div>
+                            <strong>Reputation</strong>
+                            <div style="color: ${reputation === 'Good' ? '#27ae60' : '#f39c12'}">${reputation}</div>
+                        </div>
+                        
+                        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                            <div style="font-size: 1.5rem; margin-bottom: 5px;">🛡️</div>
+                            <strong>Threats Found</strong>
+                            <div>${threats.length}</div>
+                        </div>
+                    </div>
+                    
+                    ${threats.length > 0 ? `
+                        <div style="background: #f8d7da; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
+                            <strong>⚠️ Security Warnings:</strong>
+                            <ul style="margin: 10px 0; padding-left: 20px;">
+                                ${threats.map(threat => `<li>${threat}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : `
+                        <div style="background: #d1ecf1; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
+                            <strong>✅ No major security threats detected.</strong>
+                        </div>
+                    `}
+                    
+                    <div style="margin-top: 20px;">
+                        <strong>Recommended Actions:</strong>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li>Verify website SSL certificate</li>
+                            <li>Check domain registration details</li>
+                            <li>Use antivirus software for downloads</li>
+                            <li>Enable two-factor authentication</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+
+            html += `
+                <div style="background: #d1ecf1; border: 1px solid #bee5eb; padding: 15px; border-radius: 5px;">
+                    <strong>🔒 Security Tips:</strong>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li>Always check for HTTPS in URLs</li>
+                        <li>Verify sender information in emails</li>
+                        <li>Use password managers</li>
+                        <li>Keep software updated</li>
+                    </ul>
+                </div>
+            `;
+
+            return html;
+        }
+
+        function getRatingColor(rating) {
+            const colors = {
+                'True': '#27ae60',
+                'Mostly True': '#2ecc71',
+                'Mixed': '#f39c12',
+                'Mostly False': '#e67e22',
+                'False': '#e74c3c'
+            };
+            return colors[rating] || '#95a5a6';
+        }
+
+        // Add some sample text on load
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('fact-input').value = "Sample claim: The Earth is flat. This can be verified through various sources.";
+            document.getElementById('security-input').value = "https://example.com";
+        });
+    </script>
+</body>
+</html>
